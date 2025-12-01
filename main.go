@@ -20,6 +20,13 @@ func letusgoView(w http.ResponseWriter, r *http.Request) {
 }
 
 func letusgoCreate(w http.ResponseWriter, r *http.Request) {
+	// use r.Method to check if it is POST
+	if r.Method != "POST" {
+
+		w.WriteHeader(405)
+		w.Write([]byte("Method Not Allowed"))
+		return
+	}
 	w.Write([]byte("letusgo create"))
 }
 

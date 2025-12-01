@@ -23,7 +23,7 @@ func letusgoCreate(w http.ResponseWriter, r *http.Request) {
 	// use r.Method to check if it is POST
 	if r.Method != "POST" {
 
-		w.Header().Set("Allow", "POST")
+		w.Header().Set("Allow", http.MethodPost)
 
 		http.Error(w, "Method Not Allowed", 405)
 		return

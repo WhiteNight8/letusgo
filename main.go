@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +18,13 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func letusgoView(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("letusgo view"))
+	// extract the value of the query parameter "id"
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+	fmt.Fprintf(w, "letusgo view id: %d", id)
 }
 
 func letusgoCreate(w http.ResponseWriter, r *http.Request) {

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -13,7 +15,29 @@ func home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("hello world"))
+	//intialize a slice containing the paths to the two files
+	files := []string{
+		"../../ui/html/pages/home.html",
+		"../../ui/html/pages/base.html",
+		"../../ui/html/partials/nav.html",
+	}
+
+	// read the template file
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	//write the template content as the response body
+	err = ts.ExecuteTemplate(w, "base", nil)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
 }
 
 func letusgoView(w http.ResponseWriter, r *http.Request) {

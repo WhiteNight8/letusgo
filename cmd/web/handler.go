@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -25,7 +24,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 	// read the template file
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Println(err.Error())
+		app.errorLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
@@ -33,14 +32,14 @@ func home(w http.ResponseWriter, r *http.Request) {
 	//write the template content as the response body
 	err = ts.ExecuteTemplate(w, "base", nil)
 	if err != nil {
-		log.Println(err.Error())
+		app.errorLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
 
 }
 
-func letusgoView(w http.ResponseWriter, r *http.Request) {
+func (app *application) letusgoView(w http.ResponseWriter, r *http.Request) {
 	// extract the value of the query parameter "id"
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
@@ -50,7 +49,7 @@ func letusgoView(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "letusgo view id: %d", id)
 }
 
-func letusgoCreate(w http.ResponseWriter, r *http.Request) {
+func (app *application) letusgoCreate(w http.ResponseWriter, r *http.Request) {
 	// use r.Method to check if it is POST
 	if r.Method != "POST" {
 

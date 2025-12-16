@@ -7,6 +7,11 @@ import (
 	"os"
 )
 
+type application struct {
+	infoLog  *log.Logger
+	errorLog *log.Logger
+}
+
 func main() {
 
 	//define a new command-line flag
@@ -17,14 +22,19 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	app := &application{
+		infoLog:  infoLog,
+		errorLog: errorLog,
+	}
+
 	mux := http.NewServeMux()
 
 	fileServer := http.FileServer(http.Dir("./ui/static"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/letusgo/view", letusgoView)
-	mux.HandleFunc("/letusgo/create", letusgoCreate)
+	mux.HandleFunc("/", app.home)
+	mux.HandleFunc("/letusgo/view", app.letusgoView)
+	mux.HandleFunc("/letusgo/create", app.letusgoCreate)
 
 	srv := &http.Server{
 		Addr:     *addr,

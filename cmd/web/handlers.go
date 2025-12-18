@@ -16,9 +16,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 	//intialize a slice containing the paths to the two files
 	files := []string{
-		"../../ui/html/pages/home.html",
-		"../../ui/html/pages/base.html",
-		"../../ui/html/partials/nav.html",
+		"./ui/html/pages/home.html",
+		"./ui/html/pages/base.html",
+		"./ui/html/partials/nav.html",
 	}
 
 	// read the template file

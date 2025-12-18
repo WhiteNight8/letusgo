@@ -7,6 +7,7 @@ import (
 func (app *application) routes() *http.ServeMux {
 	mux := http.NewServeMux()
 
+	// 使用相对于项目根目录的路径
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 

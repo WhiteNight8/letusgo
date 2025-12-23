@@ -14,6 +14,20 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//create some variables holding dummy data
+	//we will remove these later on
+	title := "Home"
+	content := "Hello, World!"
+	expires := 7
+
+	id, err := app.snippets.Insert(title, content, expires)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/letusgo/view?id=%d", id), http.StatusSeeOther)
+
 	//intialize a slice containing the paths to the two files
 	files := []string{
 		"./ui/html/pages/home.html",

@@ -14,7 +14,7 @@ type Snippet struct {
 }
 
 type SnippetsModel struct {
-	db *sql.DB
+	DB *sql.DB
 }
 
 func (m *SnippetsModel) Insert(title, content string, expires int) (int, error) {

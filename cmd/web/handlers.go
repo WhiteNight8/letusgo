@@ -1,94 +1,105 @@
+// Package main 是应用程序的主包
 package main
 
 import (
-	"errors"
-	"fmt"
+	"errors"        // 导入错误处理包
+	"fmt"           // 导入格式化输出包
+	// "html/template" // HTML模板包（当前已注释）
+	"net/http"      // HTTP包
+	"strconv"       // 字符串转换包
 
-	// "html/template"
-	"net/http"
-	"strconv"
-
-	"letgo.snippetbox/internal/models"
+	"letgo.snippetbox/internal/models" // 内部数据模型包
 )
 
+// home 处理函数用于处理主页请求
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-
+	// 检查请求路径是否为根路径
 	if r.URL.Path != "/" {
-		app.notFound(w)
+		app.notFound(w) // 路径错误时返回404
 		return
 	}
-	// use the snippets model to get the 10 most recently created snippets
+	
+	// 获取最近创建的10个代码片段
 	snippets, err := app.snippets.Latest()
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, err) // 数据库查询失败时返回500
 		return
 	}
 
+	// 将获取到的代码片段输出到响应
 	for _, snippet := range snippets {
 		fmt.Fprintf(w, "%+v", snippet)
 	}
 
-	//intialize a slice containing the paths to the two files
-	// 	files := []string{
-	// 		"./ui/html/pages/home.html",
-	// 		"./ui/html/pages/base.html",
-	// 		"./ui/html/partials/nav.html",
-	// 	}
+	// 以下是使用模板渲染页面的代码（当前已注释）
+	// 模板文件路径
+	// files := []string{
+	//     "./ui/html/pages/home.html",   // 主页模板
+	//     "./ui/html/pages/base.html",   // 基础模板
+	//     "./ui/html/partials/nav.html", // 导航栏模板
+	// }
 
-	// 	// read the template file
-	// 	ts, err := template.ParseFiles(files...)
-	// 	if err != nil {
-	// 		app.serverError(w, err)
-	// 		return
-	// 	}
+	// // 解析模板文件
+	// ts, err := template.ParseFiles(files...)
+	// if err != nil {
+	//     app.serverError(w, err)
+	//     return
+	// }
 
-	// 	//write the template content as the response body
-	// 	err = ts.ExecuteTemplate(w, "base", nil)
-	// 	if err != nil {
-	// 		app.serverError(w, err)
-	// 	}
+	// // 执行模板渲染
+	// err = ts.ExecuteTemplate(w, "base", nil)
+	// if err != nil {
+	//     app.serverError(w, err)
+	// }
 }
 
+// letusgoView 处理函数用于查看单个代码片段
 func (app *application) letusgoView(w http.ResponseWriter, r *http.Request) {
-	// extract the value of the query parameter "id"
+	// 从URL查询参数中获取id值
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
-		app.notFound(w)
+		app.notFound(w) // id无效时返回404
 		return
 	}
 
-	// use the snippets model to get the data for a specific record based on its ID
+	// 根据id获取对应的代码片段
 	snippet, err := app.snippets.Get(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
-			app.notFound(w)
+			app.notFound(w) // 未找到记录时返回404
 		} else {
-			app.serverError(w, err)
+			app.serverError(w, err) // 其他错误返回500
 		}
 		return
 	}
 
+	// 将获取到的代码片段输出到响应
 	fmt.Fprintf(w, "%+v", snippet)
 }
 
+// letusgoCreate 处理函数用于创建新的代码片段
 func (app *application) letusgoCreate(w http.ResponseWriter, r *http.Request) {
+	// 检查请求方法是否为POST
 	if r.Method != http.MethodPost {
+		// 设置允许的请求方法
 		w.Header().Set("Allow", http.MethodPost)
+		// 返回405 Method Not Allowed
 		app.clientError(w, http.StatusMethodNotAllowed)
 		return
 	}
-	// Create some variables holding dummy data. We'll remove these later on
-	// during the build.
+	
+	// 模拟数据（实际项目中应从请求体获取）
 	title := "O snail"
 	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
-	expires := 7
-	// Pass the data to the SnippetModel.Insert() method, receiving the
-	// ID of the new record back.
+	expires := 7 // 有效期（天）
+	
+	// 将数据插入到数据库
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, err) // 插入失败时返回500
 		return
 	}
-	// Redirect the user to the relevant page for the snippet.
+	
+	// 重定向到新创建的代码片段页面
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
 }

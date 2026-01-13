@@ -4,7 +4,7 @@ package main
 import (
 	"errors"        // 导入错误处理包
 	"fmt"           // 导入格式化输出包
-	// "html/template" // HTML模板包（当前已注释）
+	"html/template" // HTML模板包（当前已注释）
 	"net/http"      // HTTP包
 	"strconv"       // 字符串转换包
 
@@ -18,7 +18,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w) // 路径错误时返回404
 		return
 	}
-	
+
 	// 获取最近创建的10个代码片段
 	snippets, err := app.snippets.Latest()
 	if err != nil {
@@ -26,31 +26,27 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 将获取到的代码片段输出到响应
-	for _, snippet := range snippets {
-		fmt.Fprintf(w, "%+v", snippet)
+	file := []string{
+		"./ui/html/pages/base.html",   // 基础模板
+		"./ui/html/partials/nav.html", // 导航栏模板
+		"./ui/html/pages/home.html",   // 主页模板
+	}
+	ts, err := template.ParseFiles(file...)
+	if err != nil {
+		app.serverError(w, err)
+		return
 	}
 
-	// 以下是使用模板渲染页面的代码（当前已注释）
-	// 模板文件路径
-	// files := []string{
-	//     "./ui/html/pages/home.html",   // 主页模板
-	//     "./ui/html/pages/base.html",   // 基础模板
-	//     "./ui/html/partials/nav.html", // 导航栏模板
-	// }
+	//create an instance of a templateData struct
+	data := &templateData{
+		Snippets: snippets,
+	}
 
-	// // 解析模板文件
-	// ts, err := template.ParseFiles(files...)
-	// if err != nil {
-	//     app.serverError(w, err)
-	//     return
-	// }
-
-	// // 执行模板渲染
-	// err = ts.ExecuteTemplate(w, "base", nil)
-	// if err != nil {
-	//     app.serverError(w, err)
-	// }
+	// 执行模板渲染
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
 
 // letusgoView 处理函数用于查看单个代码片段
@@ -73,8 +69,28 @@ func (app *application) letusgoView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 将获取到的代码片段输出到响应
-	fmt.Fprintf(w, "%+v", snippet)
+	// 模板文件路径
+	files := []string{
+		"./ui/html/pages/base.html",   // 基础模板
+		"./ui/html/partials/nav.html", // 导航栏模板
+		"./ui/html/pages/view.html",   // 查看代码片段模板
+	}
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	//create an instance of a templateData struct
+	data := &templateData{
+		Snippet: snippet,
+	}
+
+	// 执行模板渲染
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
 
 // letusgoCreate 处理函数用于创建新的代码片段
@@ -87,19 +103,19 @@ func (app *application) letusgoCreate(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusMethodNotAllowed)
 		return
 	}
-	
+
 	// 模拟数据（实际项目中应从请求体获取）
 	title := "O snail"
 	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
 	expires := 7 // 有效期（天）
-	
+
 	// 将数据插入到数据库
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.serverError(w, err) // 插入失败时返回500
 		return
 	}
-	
+
 	// 重定向到新创建的代码片段页面
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
 }

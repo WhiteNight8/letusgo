@@ -2,11 +2,12 @@
 package main
 
 import (
-	"database/sql"      // 导入数据库SQL包
-	"flag"              // 导入命令行参数解析包
-	"log"               // 导入日志包
-	"net/http"          // 导入HTTP服务器包
-	"os"                // 导入操作系统包
+	"database/sql" // 导入数据库SQL包
+	"flag"         // 导入命令行参数解析包
+	"html/template"
+	"log"      // 导入日志包
+	"net/http" // 导入HTTP服务器包
+	"os"       // 导入操作系统包
 
 	"letgo.snippetbox/internal/models" // 导入内部数据模型包
 
@@ -15,9 +16,10 @@ import (
 
 // application 结构体定义了应用程序的核心依赖
 type application struct {
-	infoLog  *log.Logger           // 信息日志记录器
-	errorLog *log.Logger           // 错误日志记录器
-	snippets *models.SnippetsModel // 代码片段数据模型
+	infoLog       *log.Logger                   // 信息日志记录器
+	errorLog      *log.Logger                   // 错误日志记录器
+	snippets      *models.SnippetsModel         // 代码片段数据模型
+	templateCache map[string]*template.Template // 模板缓存
 }
 
 // main 函数是应用程序的入口点
@@ -44,18 +46,25 @@ func main() {
 	// 延迟关闭数据库连接
 	defer db.Close()
 
+	// 创建模板缓存
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err) // 模板缓存创建失败时退出程序
+	}
+
 	// 初始化应用程序结构体
 	app := &application{
-		infoLog:  infoLog,
-		errorLog: errorLog,
-		snippets: &models.SnippetsModel{DB: db},
+		infoLog:       infoLog,
+		errorLog:      errorLog,
+		snippets:      &models.SnippetsModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	// 配置HTTP服务器
 	srv := &http.Server{
-		Addr:     *addr,           // 服务器监听地址
-		ErrorLog: errorLog,        // 服务器错误日志
-		Handler:  app.routes(),    // 请求处理器
+		Addr:     *addr,        // 服务器监听地址
+		ErrorLog: errorLog,     // 服务器错误日志
+		Handler:  app.routes(), // 请求处理器
 	}
 
 	// 记录服务器启动信息

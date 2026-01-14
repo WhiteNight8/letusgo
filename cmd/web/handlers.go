@@ -2,11 +2,11 @@
 package main
 
 import (
-	"errors"        // 导入错误处理包
-	"fmt"           // 导入格式化输出包
-	"html/template" // HTML模板包（当前已注释）
-	"net/http"      // HTTP包
-	"strconv"       // 字符串转换包
+	"errors" // 导入错误处理包
+	"fmt"    // 导入格式化输出包
+	// HTML模板包（当前已注释）
+	"net/http" // HTTP包
+	"strconv"  // 字符串转换包
 
 	"letgo.snippetbox/internal/models" // 内部数据模型包
 )
@@ -26,27 +26,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file := []string{
-		"./ui/html/pages/base.html",   // 基础模板
-		"./ui/html/partials/nav.html", // 导航栏模板
-		"./ui/html/pages/home.html",   // 主页模板
-	}
-	ts, err := template.ParseFiles(file...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	//create an instance of a templateData struct
-	data := &templateData{
+	// 渲染主页模板
+	app.render(w, http.StatusOK, "home.html", &templateData{
 		Snippets: snippets,
-	}
-
-	// 执行模板渲染
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	})
 }
 
 // letusgoView 处理函数用于查看单个代码片段
@@ -69,28 +52,10 @@ func (app *application) letusgoView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 模板文件路径
-	files := []string{
-		"./ui/html/pages/base.html",   // 基础模板
-		"./ui/html/partials/nav.html", // 导航栏模板
-		"./ui/html/pages/view.html",   // 查看代码片段模板
-	}
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	//create an instance of a templateData struct
-	data := &templateData{
+	// 渲染查看代码片段模板
+	app.render(w, http.StatusOK, "view.html", &templateData{
 		Snippet: snippet,
-	}
-
-	// 执行模板渲染
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	})
 }
 
 // letusgoCreate 处理函数用于创建新的代码片段

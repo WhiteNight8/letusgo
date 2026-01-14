@@ -29,3 +29,21 @@ func (app *application) notFound(w http.ResponseWriter) {
 	// 调用clientError方法返回404错误
 	app.clientError(w, http.StatusNotFound)
 }
+
+func (app *application) render(w http.ResponseWriter, status int, page string, data *templateData) {
+	// 从模板缓存中获取指定名称的模板
+	ts, ok := app.templateCache[page]
+	if !ok {
+		// 如果模板不存在，返回服务器错误
+		app.serverError(w, fmt.Errorf("The template %s does not exist", page))
+		return
+	}
+
+	// 执行模板渲染
+	w.WriteHeader(status)
+	err := ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		// 如果渲染过程中发生错误，返回服务器错误
+		app.serverError(w, err)
+	}
+}

@@ -6,6 +6,7 @@ import (
 	"fmt"           // 导入格式化输出包
 	"net/http"      // HTTP包
 	"runtime/debug" // 运行时调试包，用于获取堆栈跟踪
+	"time"
 )
 
 // serverError 方法用于处理服务器内部错误（500）
@@ -55,4 +56,10 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 
 	// 将渲染后的内容写入响应体
 	buf.WriteTo(w)
+}
+
+func (app *application) newTemplateData(r *http.Request) *templateData {
+	return &templateData{
+		CurrentYear: time.Now().Year(),
+	}
 }

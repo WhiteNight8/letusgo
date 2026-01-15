@@ -4,6 +4,7 @@ package main
 import (
 	"errors" // 导入错误处理包
 	"fmt"    // 导入格式化输出包
+
 	// HTML模板包（当前已注释）
 	"net/http" // HTTP包
 	"strconv"  // 字符串转换包
@@ -26,10 +27,12 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 创建模板数据
+	data := app.newTemplateData(r)
+	data.Snippets = snippets
+
 	// 渲染主页模板
-	app.render(w, http.StatusOK, "home.html", &templateData{
-		Snippets: snippets,
-	})
+	app.render(w, http.StatusOK, "home.html", data)
 }
 
 // letusgoView 处理函数用于查看单个代码片段
@@ -52,10 +55,12 @@ func (app *application) letusgoView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 创建模板数据
+	data := app.newTemplateData(r)
+	data.Snippet = snippet
+
 	// 渲染查看代码片段模板
-	app.render(w, http.StatusOK, "view.html", &templateData{
-		Snippet: snippet,
-	})
+	app.render(w, http.StatusOK, "view.html", data)
 }
 
 // letusgoCreate 处理函数用于创建新的代码片段

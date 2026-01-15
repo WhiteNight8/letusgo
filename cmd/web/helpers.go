@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"           // 导入格式化输出包
 	"net/http"      // HTTP包
 	"runtime/debug" // 运行时调试包，用于获取堆栈跟踪
@@ -39,11 +40,19 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 		return
 	}
 
-	// 执行模板渲染
-	w.WriteHeader(status)
-	err := ts.ExecuteTemplate(w, "base", data)
+	// 创建一个新的缓冲区
+	buf := new(bytes.Buffer)
+
+	err := ts.ExecuteTemplate(buf, "base", data)
 	if err != nil {
 		// 如果渲染过程中发生错误，返回服务器错误
 		app.serverError(w, err)
+		return
 	}
+
+	// 执行模板渲染
+	w.WriteHeader(status)
+
+	// 将渲染后的内容写入响应体
+	buf.WriteTo(w)
 }
